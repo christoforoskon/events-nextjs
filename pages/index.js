@@ -1,3 +1,4 @@
+import { MongoClient } from 'mongodb';
 import EventList from '../components/events/EventList'
 
 const EVENTS = [
@@ -36,11 +37,26 @@ function HomePage(props) {
 
 export async function getStaticProps() {
 
+  const client = await MongoClient.connect('mongodb+srv://christopherkonakas:christopherkonakas@cluster0.xhi7lqn.mongodb.net/events?retryWrites=true&w=majority');
+  const db = client.db();
+
+  //collection->documents
+  const eventsCollection = db.collection('events');
+
+  const events = await eventsCollection.find().toArray();
+
+  client.close();
+
   return {
     props: {
-      events: EVENTS
+      events: events.map(event => ({
+        title: event.title,
+        address: event.address,
+        image: event.image,
+        id: event._id.toString(),
+      }))
     },
-    revalidate: 10
+    revalidate: 1
   };
 }
 
